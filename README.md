@@ -154,14 +154,42 @@ La máquina de estados del controlador dinámico inicia igualmente en IDLE, dond
 
 ## Simulaciones 
 
-<!-- (Incluir las de Digital si hicieron uso de esta herramienta, pero también deben incluir simulaciones realizadas usando un simulador HDL como por ejemplo Icarus Verilog + GTKwave) -->
+#### Escenario estatico
 
+<img width="1162" height="628" alt="image" src="https://github.com/user-attachments/assets/b7731f36-60ba-416f-9d67-f24eb44907c3" />
+
+La simulación obtenida en GTKWave permite verificar el funcionamiento del controlador estático de la pantalla LCD 16×2. Inicialmente, la señal `reset` permanece en nivel bajo y posteriormente cambia a nivel alto, habilitando la operación del sistema. Al activarse `ready_i`, el controlador comienza a transmitir los comandos de configuración y los caracteres almacenados en la memoria. La señal `rw` permanece en cero durante toda la simulación, indicando que la FPGA únicamente realiza operaciones de escritura. Por otra parte, `rs` toma el valor cero cuando el bus `data[7:0]` contiene comandos de control y cambia a uno durante la transmisión de caracteres ASCII. En la forma de onda se observa la escritura secuencial de los textos “Bateria 1” y “Bateria 2”, separados por el comando que posiciona el cursor al inicio de la segunda fila. La señal `enable` presenta pulsos periódicos que permiten a la LCD capturar cada comando o carácter en su flanco descendente, confirmando que la secuencia de inicialización y visualización del texto estático se ejecuta correctamente.
+
+#### Escenario dinamico 
+
+<img width="1135" height="600" alt="image" src="https://github.com/user-attachments/assets/bfb48cf6-1b84-4210-a8bf-32619577160a" />
+
+La simulación en GTKWave del controlador dinámico evidencia inicialmente la transmisión de los comandos de configuración y la escritura de los textos estáticos “Bateria 1” y “Bateria 2”. Una vez completada esta etapa, la máquina de estados entra en el ciclo de actualización dinámica, en el cual posiciona el cursor en cada fila mediante los comandos 0x8A y 0xCA, identificados porque la señal rs toma el valor cero. Posteriormente, rs cambia a uno y se transmiten los caracteres ASCII correspondientes a las centenas, decenas y unidades de las entradas value_1 y value_2. Durante la simulación se observan cambios en ambos valores de entrada y su actualización periódica en el bus de datos, mientras rw permanece en cero y enable genera los pulsos necesarios para la escritura. Por lo tanto, la forma de onda confirma que el sistema conserva el texto estático y actualiza continuamente los dos valores numéricos sin borrar completamente la pantalla.
 
 ## Implementación
 
+<img width="656" height="360" alt="image" src="https://github.com/user-attachments/assets/e44f8656-6503-4d04-b575-575f10fbefb0" />
+
+La implementación física permitió comprobar el funcionamiento de la pantalla LCD 16×2 en diferentes condiciones de operación. En la primera prueba se visualizó un mensaje estático de motivación, demostrando la correcta transmisión de caracteres ASCII y la escritura en las dos líneas de la pantalla. En la segunda prueba se presentó la hora actual obtenida mediante el módulo RTC, evidenciando el funcionamiento dinámico del sistema, ya que la información mostrada cambia continuamente con el paso del tiempo. Finalmente, se implementó un mensaje de respuesta asociado a la alarma, el cual se activa cuando se cumple la condición programada para recordar la toma del medicamento. Estas pruebas confirman la integración adecuada entre la FPGA, la pantalla LCD, el reloj en tiempo real y la lógica de control del pastillero.
 
 ## Conclusiones
 
+## Conclusiones
 
+1. El uso de una máquina de estados finitos permitió organizar de forma secuencial la inicialización, configuración y escritura de información en la pantalla LCD 16×2, garantizando que cada comando y carácter fuera enviado en el orden correcto.
+
+2. La implementación del controlador estático permitió visualizar correctamente mensajes almacenados en memoria, mientras que la versión dinámica hizo posible actualizar valores y mostrar información variable, como la hora suministrada por el módulo RTC.
+
+3. El divisor de frecuencia seleccionado redujo la velocidad del reloj principal de la FPGA hasta obtener una señal adecuada para controlar la LCD. Esto permitió mantener estables los datos y comandos durante el tiempo necesario para que fueran reconocidos correctamente por la pantalla.
+
+4. Las simulaciones realizadas en GTKWave permitieron verificar el comportamiento de las señales `rs`, `rw`, `enable` y `data`, además de comprobar la secuencia de estados y la transmisión de comandos y caracteres antes de implementar el sistema físicamente.
+
+5. La implementación física confirmó la correcta integración entre la FPGA, la pantalla LCD, el reloj en tiempo real y la lógica de alarma. Se logró visualizar mensajes de motivación, la hora actual y el mensaje asociado a la activación de la alarma.
+
+6. La actualización únicamente de las posiciones dinámicas evita borrar y reescribir continuamente toda la pantalla, reduciendo operaciones innecesarias y disminuyendo la posibilidad de parpadeos durante la visualización.
+
+7. En general, los resultados obtenidos demuestran que el diseño desarrollado cumple con el objetivo de controlar una LCD 16×2 mediante Verilog y máquinas de estados, permitiendo presentar tanto información estática como dinámica.
+   
 ## Referencias
 
+Electronicadigital1. (s. f.). *Laboratorio 04: Visualización usando pantalla LCD 16×2 en modo paralelo* [Archivo README]. GitHub. Recuperado el 15 de junio de 2026, de https://github.com/Electronicadigital1/2026-1/blob/main/Labs/Lab_6/README.md
