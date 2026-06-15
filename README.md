@@ -35,57 +35,68 @@ El controlador se encuentra compuesto por los siguientes bloques:
 ###### Divisor de frecuencia:
 reduce la frecuencia del reloj principal de la FPGA y genera una señal más lenta utilizada para controlar los tiempos de la pantalla.
 
-## Justificación del divisor de frecuencia
+###### Justificación del divisor de frecuencia
 
-La FPGA utiliza un reloj principal de:
+La FPGA trabaja con un reloj principal de:
 
-[
-f_{clk}=50,\text{MHz}
-]
+```text
+f_clk = 50 MHz = 50 000 000 Hz
+```
 
-Por tanto, su periodo es:
+El periodo del reloj de entrada es:
 
-[
-T_{clk}=\frac{1}{f_{clk}}
-=\frac{1}{50\times10^6}
-=20,\text{ns}
-]
+```text
+T_clk = 1 / f_clk
 
-La pantalla LCD no puede trabajar directamente a esta velocidad, por lo que se utiliza un contador con:
+T_clk = 1 / 50 000 000
 
-[
-COUNT_MAX=800000
-]
+T_clk = 20 ns
+```
 
-El tiempo necesario para cambiar el estado de `clk_16ms` es:
+Para reducir la velocidad de operación de la pantalla LCD se seleccionó:
 
-[
-t_{cambio}=\frac{COUNT_MAX}{f_{clk}}
-=\frac{800000}{50\times10^6}
-=0.016,\text{s}=16,\text{ms}
-]
+```text
+COUNT_MAX = 800 000
+```
 
-Como la señal cambia de estado cada 16 ms, su periodo completo es:
+El tiempo que tarda la señal `clk_16ms` en cambiar de estado es:
 
-[
-T_{LCD}=2(16,\text{ms})=32,\text{ms}
-]
+```text
+t_cambio = COUNT_MAX / f_clk
 
-Por lo tanto, la frecuencia generada es:
+t_cambio = 800 000 / 50 000 000
 
-[
-f_{LCD}=\frac{1}{T_{LCD}}
-=\frac{1}{0.032}
-=31.25,\text{Hz}
-]
+t_cambio = 0.016 s = 16 ms
+```
 
-Este valor permite que los comandos y caracteres permanezcan estables durante un tiempo suficientemente largo antes de ser capturados por la pantalla en el flanco de bajada de `enable`. Aunque la actualización es más lenta que la capacidad máxima de la LCD, garantiza un funcionamiento estable y facilita la simulación y depuración del sistema.
+Como la señal cambia de nivel cada 16 ms, necesita dos cambios para completar un periodo:
 
-En general, el valor del contador puede calcularse mediante:
+```text
+T_LCD = 2 × t_cambio
 
-[
-COUNT_MAX=f_{clk},t_{cambio}
-]
+T_LCD = 2 × 16 ms
+
+T_LCD = 32 ms
+```
+
+La frecuencia resultante es:
+
+```text
+f_LCD = 1 / T_LCD
+
+f_LCD = 1 / 0.032
+
+f_LCD = 31.25 Hz
+```
+
+Por lo tanto, la señal `enable` cambia de estado cada **16 ms** y tiene una frecuencia aproximada de **31.25 Hz**. Este tiempo permite mantener estables los comandos y caracteres enviados a la LCD, garantizando que sean capturados correctamente en el flanco de bajada de `enable`.
+
+La expresión general para seleccionar el divisor es:
+
+```text
+COUNT_MAX = f_clk × t_cambio
+```
+
 
 ###### Máquina de estados finitos:
 determina la operación que debe ejecutarse en cada instante, incluyendo la configuración, escritura estática, posicionamiento del cursor y actualización de los valores dinámicos.
